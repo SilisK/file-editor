@@ -1,0 +1,71 @@
+## .NET Core
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## ASP.NET Core
+wwwroot/dist/
+wwwroot/node_modules/
+
+# When using Razor Class Libraries
+**/Areas/**/bin/
+**/Areas/**/obj/
+
+## User-specific files
+*.vs/
+.vscode/
+*.swp
+*.tmp
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+out/
+
+## Package management
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Visual Studio Code
+.vscode/
+
+## Visual Studio
+.vs/
+*.csproj.user
+
+## Rider
+.idea/
+*.sln.iml
+
+## Others
+_ReSharper*/
+*.DotSettings.user
+*.dbmdl
+*.bak
+*.log
+
+## dotnet watch
+**/Properties/launchSettings.json
+
+# Local secrets
+secrets.json
+.env
+.env.*
+
+# Optional: ignore local test results or coverage
+TestResults/
+coverage/
+
+# Node modules (if using npm or yarn)
+node_modules/
