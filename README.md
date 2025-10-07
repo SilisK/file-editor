@@ -26,5 +26,10 @@ Feel free to make contributions to this repository if you want to add a new feat
 
 ```
 git clone https://github.com/SilisK/file-editor.git
-dotnet run
+```
+
+### 🔄 Run locally
+
+```
+dotnet watch run
 ```
