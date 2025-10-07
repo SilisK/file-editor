@@ -1,3 +1,61 @@
 ﻿@page "/"
 
+@using System.IO
+@using Microsoft.AspNetCore.Components.Forms
+
 <PageTitle>File Editor</PageTitle>
+
+<header style="display:flex;align-items:center;gap:1em;">
+    <img src="icon-192.png" width=36 style="b" />
+    <h1 style="margin:0;">
+        File Editor
+    </h1>
+</header>
+
+<div style="display:grid;place-items:center;">
+    <!-- Display Area Container -->
+    <div style="max-width:360px;width:100%;min-height:360px;background-color:whitesmoke;display:grid;place-items:center;">
+        <!-- Display Area -->
+        <div>
+            <!-- Image Preview -->
+            @if (!string.IsNullOrEmpty(imagePreviewUrl))
+            {
+                <img src="@imagePreviewUrl" alt="Selected image" style="max-width: 300px; max-height: 300px;" />
+            }
+        </div>
+    </div>
+
+    <!-- File Input -->
+    <div class="file-upload-wrapper">
+        <label for="file-upload" class="file-upload-box">
+            Click or drag an image file here to upload
+        </label>
+        <InputFile id="file-upload" class="hidden-input" OnChange="HandleFileSelection" />
+    </div>
+</div>
+
+@code {
+    private IBrowserFile? selectedImageFile;
+    private string? imagePreviewUrl;
+
+    private async Task HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        var imageFile = e.File;
+
+        if (imageFile != null && imageFile.ContentType.StartsWith("image/"))
+        {
+            selectedImageFile = imageFile;
+
+            var buffer = new byte[selectedImageFile.Size];
+            await selectedImageFile.OpenReadStream().ReadAsync(buffer);
+
+            // Create base64 image string
+            imagePreviewUrl = $"data:{selectedImageFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        }
+        else
+        {
+            selectedImageFile = null;
+            imagePreviewUrl = null;
+        }
+    }
+}
