@@ -26,8 +26,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Restore dependencies
+        run: dotnet restore
+
       - name: Publish Blazor WebAssembly project
-        run: dotnet publish -c Release -o build_output --nologo
+        run: dotnet publish -c Release -o build_output --nologo /p:BasePath="/file-editor/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -39,8 +42,7 @@ jobs:
     needs: build
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
