@@ -44,7 +44,7 @@
             </li>
             <li>
                 <b>Last Modified On:</b>
-                <span>@selectedFile?.LastModified.ToString("MMMM dd, yyyy hh:mm tt")</span>
+                <span>@selectedFile?.LastModified.ToLocalTime().ToString("MMMM dd, yyyy hh:mm tt")</span>
             </li>
             <li>
                 <b>File Size:</b>
