@@ -20,6 +20,15 @@ a, .btn-link {
     color: #fff;
     background-color: #1b6ec2;
     border-color: #1861ac;
+    transition: 0.1s all;
+}
+
+.btn-primary:hover {
+    opacity: 0.75;
+}
+
+.btn-primary:active {
+    opacity: 1;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
@@ -127,7 +136,7 @@ code {
 }
 
 .file-upload-box {
-    border: 2px dashed #aaa;
+    border: 5px dashed #aaa;
     padding: 2rem;
     max-width: 360px;
     width: 100%;

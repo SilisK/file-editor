@@ -2,6 +2,7 @@
 
 @using System.IO
 @using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JSRuntime
 
 <PageTitle>File Editor</PageTitle>
 
@@ -13,16 +14,39 @@
 </header>
 
 <div style="display:grid;place-items:center;">
+    <h3 style="opacity:0.085;">Read-only</h3>
     <!-- Display Area Container -->
     <div style="max-width:360px;width:100%;min-height:360px;background-color:whitesmoke;display:grid;place-items:center;">
         <!-- Display Area -->
-        <div>
+        <div style="width:100%;display:grid;">
             <!-- Image Preview -->
-            @if (!string.IsNullOrEmpty(imagePreviewUrl))
+            @if (selectedFile != null && imagePreviewUrl != null)
             {
-                <img src="@imagePreviewUrl" alt="Selected image" style="max-width: 300px; max-height: 300px;" />
+                <img id="file-image" src="@imagePreviewUrl" alt="display image" style="max-width:100%;" />
             }
         </div>
+    </div>
+    <!-- Metadata Area Container -->
+    <div style="max-width:360px;width:100%;padding:0.25em;">
+        <h3 style="text-align:center;">Metadata</h3>
+        <ul style="display:grid;gap:0.25em;list-style:none;padding:0;">
+            <li>
+                <b>File Name:</b>
+                <span>@selectedFile?.Name</span>
+            </li>
+            <li>
+                <b>Type:</b>
+                <span>@selectedFile?.ContentType</span>
+            </li>
+            <li>
+                <b>Last Modified On:</b>
+                <span>@selectedFile?.LastModified.ToString("MMMM dd, yyyy hh:mm tt")</span>
+            </li>
+            <li>
+                <b>File Size:</b>
+                <span>@GetReadableFileSizeText(selectedFile?.Size)</span>
+            </li>
+        </ul>
     </div>
 
     <!-- File Input -->
@@ -31,31 +55,85 @@
             Click or drag an image file here to upload
         </label>
         <InputFile id="file-upload" class="hidden-input" OnChange="HandleFileSelection" />
+        <div style="display:grid;margin-top:0.5em;">
+            <button @onclick="ClearFile" class="btn-primary" style="border:none;padding:0.85em;border-radius:0.5em;font-weight:400;">
+                Clear
+            </button>
+        </div>
     </div>
 </div>
 
 @code {
-    private IBrowserFile? selectedImageFile;
-    private string? imagePreviewUrl;
+    private IBrowserFile selectedFile;
+    private string imagePreviewUrl;
+    private const long MaximumFileSizeForBase64 = 512000; // 500 KB
+
+    async Task<string> GetBase64FromFile(IBrowserFile file)
+    {
+        try 
+        {
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream().ReadAsync(buffer);
+            var base64 = Convert.ToBase64String(buffer);
+            return $"data:{file.ContentType};base64,{base64}";
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     private async Task HandleFileSelection(InputFileChangeEventArgs e)
     {
-        var imageFile = e.File;
+        var file = e.File;
+        bool isImage = file.ContentType.StartsWith("image/");
 
-        if (imageFile != null && imageFile.ContentType.StartsWith("image/"))
+        if (file != null)
         {
-            selectedImageFile = imageFile;
+            selectedFile = file;
 
-            var buffer = new byte[selectedImageFile.Size];
-            await selectedImageFile.OpenReadStream().ReadAsync(buffer);
-
-            // Create base64 image string
-            imagePreviewUrl = $"data:{selectedImageFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+            if (isImage)
+            {
+                // Use JavaScript to compress and convert image to base64
+                var url = await JSRuntime.InvokeAsync<string>("compressAndConvertImageToBase64FromInput");
+                imagePreviewUrl = url;
+            }
+            else
+            {
+                imagePreviewUrl = "/360x360-placeholder.png";
+            }
         }
         else
         {
-            selectedImageFile = null;
-            imagePreviewUrl = null;
+            ClearFile();
         }
+    }
+
+    string GetReadableFileSizeText(long? fileSizeInBytes)
+    {
+        if (!fileSizeInBytes.HasValue || fileSizeInBytes.Value < 0)
+        {
+            return "";
+        }
+
+        double size = fileSizeInBytes.Value;
+        string[] units = { "Bytes", "KB", "MB", "GB", "TB" };
+        int unitIndex = 0;
+
+        while (size >= 1024 && unitIndex < units.Length - 1)
+        {
+            size /= 1024;
+            unitIndex++;
+        }
+
+        return unitIndex == 0
+            ? $"{size:0} {units[unitIndex]}"
+            : $"{size:0.00} {units[unitIndex]}";
+    }
+
+    void ClearFile()
+    {
+        selectedFile = null;
+        imagePreviewUrl = null;
     }
 }
