@@ -20,9 +20,13 @@
         <!-- Display Area -->
         <div style="width:100%;display:grid;">
             <!-- Image Preview -->
-            @if (selectedFile != null && imagePreviewUrl != null)
+            @if (selectedFile != null && !string.IsNullOrEmpty(imagePreviewUrl))
             {
                 <img id="file-image" src="@imagePreviewUrl" alt="display image" style="max-width:100%;" />
+            }
+            @if (selectedFile?.ContentType == "application/pdf")
+            {
+                <iframe src="@pdfDataUrl" width="100%" height="600px" style="border:1px solid black;"></iframe>
             }
         </div>
     </div>
@@ -67,6 +71,16 @@
     private IBrowserFile selectedFile;
     private string imagePreviewUrl;
     private const long MaximumFileSizeForBase64 = 512000; // 500 KB
+    private string? pdfDataUrl;
+
+    private async Task LoadPdf(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream(file.Size);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var base64 = Convert.ToBase64String(ms.ToArray());
+        pdfDataUrl = $"data:application/pdf;base64,{base64}";
+    }
 
     async Task<string> GetBase64FromFile(IBrowserFile file)
     {
@@ -87,10 +101,12 @@
     {
         var file = e.File;
         bool isImage = file.ContentType.StartsWith("image/");
+        bool isPDF = file.ContentType == "application/pdf";
 
         if (file != null)
         {
             selectedFile = file;
+            imagePreviewUrl = "";
 
             if (isImage)
             {
@@ -98,9 +114,9 @@
                 var url = await JSRuntime.InvokeAsync<string>("compressAndConvertImageToBase64FromInput");
                 imagePreviewUrl = url;
             }
-            else
+            else if (isPDF)
             {
-                imagePreviewUrl = "/360x360-placeholder.png";
+                await LoadPdf(file);
             }
         }
         else
